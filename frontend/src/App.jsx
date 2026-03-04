@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
 // --- 1. IMPORT HALAMAN UTAMA & AUTH ---
-// Pastikan nama folder 'auth&landing' sudah sesuai dengan di folder fisik kamu
-import LandingPage from './pages/auth&landing/LandingPage';
-import Register from './pages/auth&landing/Register';
-import Login from './pages/auth&landing/Login';
+// Pastikan nama folder 'auth-landing' sudah sesuai dengan di folder fisik kamu
+import LandingPage from './pages/auth-landing/LandingPage';
+import Register from './pages/auth-landing/Register';
+import Login from './pages/auth-landing/Login';
 
 // --- 2. IMPORT HALAMAN OWNER ---
 import OwnerDashboard from './pages/Owner/OwnerDashboard';
