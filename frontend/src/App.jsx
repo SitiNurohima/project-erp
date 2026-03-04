@@ -1,78 +1,96 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
 // --- 1. IMPORT HALAMAN UTAMA & AUTH ---
-import LandingPage from './pages/LandingPage';
-import Register from './pages/Register';
-import Login from './pages/Login';
+// Pastikan nama folder 'auth&landing' sudah sesuai dengan di folder fisik kamu
+import LandingPage from './pages/auth&landing/LandingPage';
+import Register from './pages/auth&landing/Register';
+import Login from './pages/auth&landing/Login';
 
-// --- 2. IMPORT HALAMAN OWNER & INVENTORY ---
-import OwnerDashboard from './pages/OwnerDashboard';
-import ProductList from './pages/ProductList';
-import CreateProduct from './pages/CreateProduct';
-import UserManagement from './pages/UserManagement';
-import StockAdjustment from './pages/StockAdjustment';
-import PurchaseOrders from './pages/PurchaseOrders';
-import Reports from './pages/Reports';
-import AuditLogs from './pages/AuditLogs';
+// --- 2. IMPORT HALAMAN OWNER ---
+import OwnerDashboard from './pages/Owner/OwnerDashboard';
+import ProductList from './pages/Owner/ProductList';
+import CreateProduct from './pages/Owner/CreateProduct';
+import UserManagement from './pages/Owner/UserManagement';
+import PurchaseOrders from './pages/Owner/PurchaseOrders';
+import AdjustmentHistory from './pages/Owner/AdjustmentHistory';
+import Reports from './pages/Owner/Reports';
+import AuditLogs from './pages/Owner/AuditLogs';
 
-// --- 3. IMPORT HALAMAN KASIR / POS ---
-import KasirDashboard from './pages/KasirDashboard';
-import POS from './pages/POS';
-import SalesHistory from './pages/SalesHistory';
-import InvoiceDetails from './pages/InvoiceDetails';
+// --- 3. IMPORT HALAMAN ADMIN SISTEM ---
+import SuperAdminDashboard from './pages/AdminSistem/SuperAdminDashboard';
+import SystemAuditLogs from './pages/AdminSistem/SystemAuditLogs';
+import GlobalReports from './pages/AdminSistem/GlobalReports'; 
+import MerchantManagement from './pages/AdminSistem/MerchantManagement'; 
+import CreateMerchant from './pages/AdminSistem/CreateMerchant'; 
 
-// --- 4. IMPORT HALAMAN GUDANG / WAREHOUSE ---
-import WarehouseDashboard from './pages/WarehouseDashboard';
-import InventoryStatus from './pages/InventoryStatus';
-import AdjustmentHistory from './pages/AdjustmentHistory';
-import RecordPurchase from './pages/RecordPurchase';
+// --- 4. IMPORT HALAMAN KASIR ---
+import KasirDashboard from './pages/Kasir/KasirDashboard';
+import POS from './pages/Kasir/POS';
+import SalesHistory from './pages/Kasir/SalesHistory';
+import InvoiceDetails from './pages/Kasir/InvoiceDetails';
 
-// --- 5. IMPORT HALAMAN SUPER ADMIN (PENYESUAIAN BARU) ---
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import MerchantManagement from './pages/MerchantManagement';
-import CreateMerchant from './pages/CreateMerchant';
-import GlobalReports from './pages/GlobalReports';
-import SystemAuditLogs from './pages/SystemAuditLogs';
+// --- 5. IMPORT HALAMAN GUDANG ---
+import WarehouseDashboard from './pages/Gudang/WarehouseDashboard';
+import InventoryStatus from './pages/Gudang/InventoryStatus';
+import StockAdjustment from './pages/Gudang/StockAdjustment';
+import RecordPurchase from './pages/Gudang/RecordPurchase'; 
 
+// =========================================================================
+// LOGIKA PROTEKSI RUTE
+// =========================================================================
+const PublicRoute = ({ children }) => {
+  const userRole = localStorage.getItem('userRole');
+  // Jika sudah login, jangan kasih akses ke Login/Register, lempar ke dashboard masing-masing
+  if (userRole === 'superadmin') return <Navigate to="/superadmin" replace />;
+  if (userRole === 'owner') return <Navigate to="/owner-dashboard" replace />;
+  if (userRole === 'kasir') return <Navigate to="/cashier" replace />;
+  if (userRole === 'gudang') return <Navigate to="/inventory" replace />;
+  return children;
+};
+
+// =========================================================================
+// KOMPONEN UTAMA
+// =========================================================================
 function App() {
   return (
     <Router>
       <Routes>
-        {/* RUTE LANDING & AUTH */}
+        {/* Halaman yang bisa diakses tanpa login */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-
-        {/* MODUL OWNER */}
-        <Route path="/dashboard" element={<OwnerDashboard />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/audit-logs" element={<AuditLogs />} />
-        <Route path="/users" element={<UserManagement />} />
         
-        {/* MODUL INVENTORY & PRODUK */}
-        <Route path="/products" element={<ProductList />} />
-        <Route path="/products/create" element={<CreateProduct />} />
-        <Route path="/inventory/adjustment" element={<StockAdjustment />} />
-        <Route path="/purchases" element={<PurchaseOrders />} />
-        
-        {/* MODUL KASIR (POINT OF SALE) */}
-        <Route path="/kasir" element={<KasirDashboard />} />
-        <Route path="/pos" element={<POS />} />
-        <Route path="/sales-history" element={<SalesHistory />} />
-        <Route path="/invoice-details" element={<InvoiceDetails />} />
+        {/* Halaman Login/Register yang akan redirect otomatis kalau sudah login */}
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 
-        {/* MODUL GUDANG (WAREHOUSE) */}
-        <Route path="/warehouse" element={<WarehouseDashboard />} />
-        <Route path="/warehouse/inventory" element={<InventoryStatus />} />
-        <Route path="/warehouse/adjustments" element={<AdjustmentHistory />} />
-        <Route path="/warehouse/purchase" element={<RecordPurchase />} />
+        {/* Semua rute Dashboard */}
+        <Route element={<Outlet />}>
+          <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/products/create" element={<CreateProduct />} />
+          <Route path="/purchases" element={<PurchaseOrders />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/warehouse/adjustments" element={<AdjustmentHistory />} />
+          <Route path="/audit-logs" element={<AuditLogs />} />
+          <Route path="/users" element={<UserManagement />} />
+          
+          <Route path="/superadmin" element={<SuperAdminDashboard />} />
+          <Route path="/admin/audit-logs" element={<SystemAuditLogs />} />
+          <Route path="/merchants" element={<MerchantManagement />} />
+          <Route path="/merchants/create" element={<CreateMerchant />} />
+          <Route path="/global-reports" element={<GlobalReports />} />
 
-        {/* MODUL SUPER ADMIN (PENYESUAIAN BARU) */}
-        <Route path="/admin" element={<SuperAdminDashboard />} />
-        <Route path="/admin/merchants" element={<MerchantManagement />} />
-        <Route path="/admin/merchants/create" element={<CreateMerchant />} />
-        <Route path="/admin/reports" element={<GlobalReports />} />
-        <Route path="/admin/audit-logs" element={<SystemAuditLogs />} />
+          <Route path="/cashier" element={<KasirDashboard />} />
+          <Route path="/pos" element={<POS />} />
+          <Route path="/sales-history" element={<SalesHistory />} />
+          <Route path="/invoice-details" element={<InvoiceDetails />} />
+
+          <Route path="/inventory" element={<WarehouseDashboard />} />
+          <Route path="/warehouse/inventory" element={<InventoryStatus />} />
+          <Route path="/inventory/adjustment" element={<StockAdjustment />} />
+          <Route path="/purchases/record" element={<RecordPurchase />} />
+        </Route>
+
+        <Route path="*" element={<div className="flex items-center justify-center h-screen font-bold text-xl">404 - Not Found</div>} />
       </Routes>
     </Router>
   );

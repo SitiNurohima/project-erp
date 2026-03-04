@@ -1,7 +1,7 @@
 import React from 'react';
 // Gunakan huruf kecil untuk folder 'components'
-import Sidebar from '../components/Sidebar'; 
-import StatCard from '../components/StatCard';
+import Sidebar from "../../components/Sidebar";
+import StatCard from "../../components/StatCard";
 
 const OwnerDashboard = () => {
   return (
