@@ -27,11 +27,18 @@ import InventoryStatus from './pages/InventoryStatus';
 import AdjustmentHistory from './pages/AdjustmentHistory';
 import RecordPurchase from './pages/RecordPurchase';
 
+// --- 5. IMPORT HALAMAN SUPER ADMIN (PENYESUAIAN BARU) ---
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import MerchantManagement from './pages/MerchantManagement';
+import CreateMerchant from './pages/CreateMerchant';
+import GlobalReports from './pages/GlobalReports';
+import SystemAuditLogs from './pages/SystemAuditLogs';
+
 function App() {
   return (
     <Router>
       <Routes>
-        {/* RUTE LANDING & AUTH (Halaman Utama) */}
+        {/* RUTE LANDING & AUTH */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
@@ -59,6 +66,13 @@ function App() {
         <Route path="/warehouse/inventory" element={<InventoryStatus />} />
         <Route path="/warehouse/adjustments" element={<AdjustmentHistory />} />
         <Route path="/warehouse/purchase" element={<RecordPurchase />} />
+
+        {/* MODUL SUPER ADMIN (PENYESUAIAN BARU) */}
+        <Route path="/admin" element={<SuperAdminDashboard />} />
+        <Route path="/admin/merchants" element={<MerchantManagement />} />
+        <Route path="/admin/merchants/create" element={<CreateMerchant />} />
+        <Route path="/admin/reports" element={<GlobalReports />} />
+        <Route path="/admin/audit-logs" element={<SystemAuditLogs />} />
       </Routes>
     </Router>
   );
