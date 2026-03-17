@@ -1,50 +1,57 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Login = () => {
-  const [role, setRole] = useState('owner'); // Default role di UI
+  const [role, setRole] = useState('owner');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+    setIsLoading(true);
     
-    // --- 1. SIMULASI RESPON DARI BACKEND (API) ---
-    // Nanti bagian ini diganti dengan response asli dari backend/database
-    const responseData = {
-      roleFromApi: role, // Ambil dari state tombol yang diklik user
-      id: 'USR-999', // Dummy User ID
-    };
+    try {
+      // Request ke backend Laravel
+      const response = await axios.post('http://127.0.0.1:8000/api/login', {
+        email: email,
+        password: password
+      });
 
-    const { roleFromApi, id } = responseData;
+      const { user, token } = response.data;
 
-    // --- 2. SIMPAN DATA KE BROWSER (localStorage) ---
-    // Simpan role dan ID agar sidebar/layout tahu siapa yang login
-    localStorage.setItem('userRole', roleFromApi);
-    localStorage.setItem('userId', id);
+      // Simpan Token dan Data User ke localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', user.id);
+      
+      // Catatan: Idealnya role didapat dari database (user.role), 
+      // tapi untuk sementara kita pakai state UI sesuai desainmu
+      localStorage.setItem('userRole', role);
 
-    // --- 3. LOGIKA PENGARAHAN (REDIRECT) YANG BARU ---
-    // Karena Owner udah bikin toko pas Register, semua langsung bablas ke dasbor!
-    if (roleFromApi === 'superadmin') {
-      navigate('/superadmin'); // Dashboard utama sistem
-    } 
-    else if (roleFromApi === 'owner') {
-      navigate('/owner-dashboard'); // Langsung masuk ke dasbor Owner
-    } 
-    else if (roleFromApi === 'kasir') {
-      navigate('/cashier'); // Halaman kasir/POS
-    } 
-    else if (roleFromApi === 'gudang') {
-      navigate('/inventory'); // Halaman manajemen gudang
-    } 
-    else {
-      navigate('/'); // Fallback
+      // Redirect sesuai role
+      if (role === 'superadmin') navigate('/superadmin');
+      else if (role === 'owner') navigate('/owner-dashboard');
+      else if (role === 'kasir') navigate('/cashier');
+      else if (role === 'gudang') navigate('/inventory');
+      else navigate('/');
+
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        setErrorMsg('Email atau password salah!');
+      } else {
+        setErrorMsg('Terjadi kesalahan pada server.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-gray-900 relative">
-      
-      {/* Background Decor */}
       <div 
         className="absolute inset-0 z-0 opacity-30 blur-md"
         style={{
@@ -65,7 +72,6 @@ const Login = () => {
             <p className="text-gray-400 text-sm font-medium">Select your role to access the system</p>
           </div>
 
-          {/* Role Selection - Pill Style */}
           <div className="grid grid-cols-2 gap-2 mb-8 bg-slate-100 p-1.5 rounded-2xl">
             {[
               { id: 'owner', label: 'Owner', icon: '👑' },
@@ -88,14 +94,22 @@ const Login = () => {
             ))}
           </div>
 
+          {errorMsg && (
+            <div className="mb-4 p-3 bg-red-50 text-red-500 text-xs font-bold rounded-xl text-center border border-red-100">
+              {errorMsg}
+            </div>
+          )}
+
           <form className="space-y-5" onSubmit={handleLogin}>
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Account Identity</label>
               <div className="relative">
                 <span className="absolute left-4 top-4 text-gray-400">👤</span>
                 <input 
-                  type="text" 
-                  placeholder={role === 'superadmin' ? "Admin ID" : "Username / Email"} 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com" 
                   className="w-full bg-slate-50 p-4 pl-12 rounded-2xl border border-slate-100 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-400 transition-all text-sm" 
                   required
                 />
@@ -103,13 +117,13 @@ const Login = () => {
             </div>
 
             <div className="space-y-1">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Password</label>
-              </div>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Password</label>
               <div className="relative">
                 <span className="absolute left-4 top-4 text-gray-400">🔒</span>
                 <input 
                   type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" 
                   className="w-full bg-slate-50 p-4 pl-12 rounded-2xl border border-slate-100 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-400 transition-all text-sm" 
                   required
@@ -119,15 +133,16 @@ const Login = () => {
 
             <button 
               type="submit"
-              className={`w-full py-5 rounded-2xl font-black shadow-xl flex items-center justify-center gap-2 hover:-translate-y-1 transition-all mt-6 text-sm uppercase tracking-widest ${
-                role === 'superadmin' ? 'bg-slate-900 text-white shadow-slate-100' : 'bg-blue-600 text-white shadow-blue-100'
+              disabled={isLoading}
+              className={`w-full py-5 rounded-2xl font-black shadow-xl flex items-center justify-center gap-2 transition-all mt-6 text-sm uppercase tracking-widest ${
+                isLoading ? 'bg-gray-400 cursor-not-allowed text-white' :
+                role === 'superadmin' ? 'bg-slate-900 text-white shadow-slate-100 hover:-translate-y-1' : 'bg-blue-600 text-white shadow-blue-100 hover:-translate-y-1'
               }`}
             >
-              Enter Dashboard <span>→</span>
+              {isLoading ? 'Processing...' : 'Enter Dashboard'} <span>→</span>
             </button>
           </form>
 
-          {/* Link Register cuma ditampilin kalau milih role Owner */}
           {role === 'owner' && (
             <div className="mt-8 pt-6 border-t border-slate-50 text-center">
               <p className="text-xs text-gray-400 font-medium">
