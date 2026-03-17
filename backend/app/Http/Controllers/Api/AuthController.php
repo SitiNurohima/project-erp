@@ -14,13 +14,15 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
+            // Catatan: Karena ada 'confirmed', saat request api harus mengirimkan field 'password_confirmation' juga
+            'password' => 'required|min:6|confirmed', 
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password,
+            // PERBAIKAN: Password wajib di-hash sebelum masuk ke database
+            'password' => Hash::make($request->password), 
             'status' => 'active',
         ]);
 

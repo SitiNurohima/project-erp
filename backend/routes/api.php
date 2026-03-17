@@ -12,19 +12,31 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuditLogController;
 
+// --- ROUTE PUBLIK (Bisa diakses tanpa login) ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Route test untuk diakses via browser
+Route::get('/test', function () {
+    return response()->json(['message' => 'API backend berjalan lancar!']);
+});
+
+
+// --- ROUTE PRIVAT (Wajib login / membawa token Sanctum) ---
 Route::middleware('auth:sanctum')->group(function () {
+    // Auth
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-
+    
+    // Dashboard & Logs
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::apiResource('audit-logs', AuditLogController::class)->only(['index', 'show']);
 
+    // Merchants
     Route::get('/my-merchants', [MerchantController::class, 'myMerchants']);
     Route::apiResource('merchants', MerchantController::class);
 
+    // Master Data & Transaksi
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('units', UnitController::class);
     Route::apiResource('products', ProductController::class);
